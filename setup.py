@@ -54,7 +54,7 @@ if sys.argv[-1] == 'publish':
 setup(
     name='django-libreports',
     version=version,
-    url='http://github.com/advancedthreatanalytics/django-libreports',
+    url='http://github.com/AdvancedThreatAnalytics/django-libreports',
     license='BSD',
     description='Django app to allow creating custom reports easily.',
     author='Advanced Threat Analytics Inc.',

@@ -21,7 +21,8 @@ Django app to allow creating custom reports easily..
 
 Install using `pip`...
 
-    pip install django-libreports
+    // pip install django-libreports
+    pip install git+https://github.com/AdvancedThreatAnalytics/django-libreport.git
 
 Example settings:
 
@@ -37,5 +38,5 @@ You will then have to create an API to manage these. More docs to come...
 
 That's it, we're done!
 
-[build-status-image]: https://secure.travis-ci.org/advancedthreatanalytics/django-libreports.png?branch=master
-[travis]: http://travis-ci.org/advancedthreatanalytics/django-libreports?branch=master
+[build-status-image]: https://secure.travis-ci.org/AdvancedThreatAnalytics/django-libreports.png?branch=master
+[travis]: http://travis-ci.org/AdvancedThreatAnalytics/django-libreports?branch=master
