@@ -21,7 +21,8 @@ Django app to allow creating custom reports easily..
 
 Install using `pip`...
 
-    // pip install django-libreports
+    pip install django-libreport
+    OR 
     pip install git+https://github.com/AdvancedThreatAnalytics/django-libreport.git
 
 Example settings:

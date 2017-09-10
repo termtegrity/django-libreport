@@ -54,7 +54,7 @@ if sys.argv[-1] == 'publish':
 setup(
     name='django-libreports',
     version=version,
-    url='http://github.com/AdvancedThreatAnalytics/django-libreports',
+    url='http://github.com/AdvancedThreatAnalytics/django-libreport',
     license='BSD',
     description='Django app to allow creating custom reports easily.',
     author='Advanced Threat Analytics Inc.',
@@ -62,8 +62,12 @@ setup(
     packages=get_packages('reports'),
     package_data=get_package_data('reports'),
     test_suite='reports.runtests.runtests.main',
-    install_requires=['python-dateutil', 'django-celery-beat', 'jsonfield',
-                      'pypandoc'],
+    install_requires=[
+        'python-dateutil',
+        'django-celery-beat',
+        'jsonfield',
+        'pypandoc'
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
@@ -77,8 +81,3 @@ setup(
     ]
 )
 
-# (*) Please direct queries to the discussion group, rather than to me directly
-#     Doing so helps ensure your question is helpful to other users.
-#     Queries directly to my email are likely to receive a canned response.
-#
-#     Many thanks for your understanding.
