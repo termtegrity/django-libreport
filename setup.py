@@ -63,6 +63,7 @@ setup(
     package_data=get_package_data('reports'),
     test_suite='reports.runtests.runtests.main',
     install_requires=[
+        'django',
         'python-dateutil',
         'django-celery-beat',
         'jsonfield',

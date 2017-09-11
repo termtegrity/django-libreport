@@ -1,5 +1,4 @@
 import logging
-
 from copy import deepcopy
 from datetime import datetime, time, timedelta
 from importlib import import_module
@@ -17,11 +16,10 @@ from .base import BaseReport
 from .conf import ORG_MODEL, REPORT_PACKAGES
 from .utils import hashed_upload_to
 
-
 logger = logging.getLogger(__name__)
 REPORTS = {}
 
-# Dynamicaly load reports
+# Dynamically load reports
 for pkg in REPORT_PACKAGES:
     path = import_module(pkg).__path__
     for loader, name, ispkg in walk_packages(path):
@@ -121,15 +119,6 @@ class Report(BaseReportModel):
         self.document.save(name, content, save=False)
         self.save()
 
-        # # TODO: Send email with template
-        # if self.emails:
-        #     extra_context = {
-        #         'name': self.name,
-        #         'creator': self.created_by,
-        #     }
-        #     send_email(self.emails, 'report', extra_context=extra_context,
-        #                attachments=self.document)
-
     def _run_instance_method(self, method):
         kwargs = deepcopy(self.config)
         kwargs.update({
@@ -211,24 +200,28 @@ class ReportSchedule(BaseReportModel):
         :return: start_datetime, end_datetime
         """
 
-        today = datetime.combine(datetime.today(), time(0, 0, 0))
+        today = datetime.combine(datetime.today().date(), time(0, 0, 0))
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
             start_datetime = today - timedelta(days=1)
-            end_datetime = datetime.combine(start_datetime, time(23, 59, 59))
+            end_datetime = datetime.combine(start_datetime.date(),
+                                            time(23, 59, 59))
 
         elif self.period == self.PERIOD_WEEKLY:
             # Last week starting from monday
             start_datetime = today - timedelta(days=7 + today.weekday())
-            end_datetime = datetime.combine(start_datetime + timedelta(days=6),
-                                            time(23, 59, 59))
+            end_datetime = datetime.combine(
+                (start_datetime + timedelta(days=6)).date(),
+                time(23, 59, 59))
         elif self.period == self.PERIOD_MONTHLY:
             # Last Months start and end date
             current_month_start = today.replace(day=1)
             start_datetime = current_month_start - relativedelta(months=1)
-            end_datetime = datetime.combine(current_month_start -
-                                            timedelta(days=1), time(23, 59, 59))
+            end_datetime = datetime.combine(
+                (current_month_start - timedelta(days=1)).date(),
+                time(23, 59, 59)
+            )
 
         elif self.period == self.PERIOD_QUARTERLY:
             # Last quarter's start and end date
@@ -244,8 +237,8 @@ class ReportSchedule(BaseReportModel):
             end_date = datetime(year, 3 * last_quarter, 1) + \
                 relativedelta(months=1) - timedelta(days=1)
 
-            start_datetime = datetime.combine(start_date, time(0, 0, 0))
-            end_datetime = datetime.combine(end_date, time(23, 59, 59))
+            start_datetime = datetime.combine(start_date.date(), time(0, 0, 0))
+            end_datetime = datetime.combine(end_date.date(), time(23, 59, 59))
 
         elif self.period == self.PERIOD_YEARLY:
             # Last year's start and end date
