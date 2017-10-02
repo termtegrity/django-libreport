@@ -61,7 +61,8 @@ class BaseReportModel(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True,
                                    null=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
-    emails = ArrayField(models.EmailField(max_length=255), null=True)
+    emails = ArrayField(models.EmailField(max_length=255), blank=True,
+                        null=True)
 
     class Meta:
         abstract = True
