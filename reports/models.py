@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
+from django.dispatch import Signal
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from jsonfield.fields import JSONField
 
@@ -17,6 +18,7 @@ from .conf import ORG_MODEL, REPORT_PACKAGES
 from .utils import hashed_upload_to
 
 logger = logging.getLogger(__name__)
+report_generated = Signal(providing_args=["report"])
 REPORTS = {}
 
 # Dynamically load reports
@@ -119,6 +121,8 @@ class Report(BaseReportModel):
         # because of document not having an attached file.
         self.document.save(name, content, save=False)
         self.save()
+
+        report_generated.send(sender=self.__class__, report=self)
 
     def _run_instance_method(self, method):
         kwargs = deepcopy(self.config)
