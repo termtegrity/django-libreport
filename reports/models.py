@@ -14,7 +14,7 @@ from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from jsonfield.fields import JSONField
 
 from .base import BaseReport
-from .conf import ORG_MODEL, REPORT_PACKAGES
+from .conf import ORG_MODEL, REPORT_PACKAGES, TYPE_CHOICES
 from .utils import hashed_upload_to
 
 logger = logging.getLogger(__name__)
@@ -49,10 +49,6 @@ class BaseReportModel(models.Model):
     Abstract Base Report Model for Report and ReportSchedule fields.
     Contains common columns.
     """
-
-    TYPE_CHOICES = (
-        ('docx', 'Word Doc'),
-    )
 
     REPORT_CHOICES = [(r.id, r.name) for r in REPORTS.values()]
 
