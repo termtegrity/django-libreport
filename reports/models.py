@@ -175,19 +175,16 @@ class ReportSchedule(BaseReportModel):
             self.periodic_task.delete()
 
         schedule, __ = CrontabSchedule.objects.get_or_create(**self.schedule)
-        # create new periodic task
-        # FIXME import the task and get this string from there
-        task = 'reports.tasks.schedule_task'
-        kwargs = {
-            'report_schedule_id': self.pk
-        }
 
+        task = 'reports.tasks.schedule_task'
         data = {
             'name': '{}_{}'.format(task, self.pk),
             'task': task,
             'enabled': True,
             'crontab': schedule,
-            'kwargs': kwargs
+            'kwargs': {
+                'report_schedule_id': self.pk
+            }
         }
 
         self.periodic_task, __ = PeriodicTask.objects.get_or_create(**data)
@@ -329,6 +326,5 @@ class ReportSchedule(BaseReportModel):
             'emails': self.emails,
         }
 
-        report_instance = Report.objects.create(**data)
-
-        report_instance.schedule_document_generation()
+        report = Report.objects.create(**data)
+        report.schedule_document_generation()
