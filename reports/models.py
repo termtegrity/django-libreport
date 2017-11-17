@@ -59,6 +59,7 @@ class BaseReportModel(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True,
                                    null=True)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
+    config = JSONField(blank=True, default={})
     emails = ArrayField(models.EmailField(max_length=255), blank=True,
                         null=True)
 
@@ -70,7 +71,6 @@ class Report(BaseReportModel):
     name = models.CharField(max_length=64, blank=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
-    config = JSONField(blank=True, default={})
     document = models.FileField(upload_to=report_upload_to, blank=True,
                                 null=True)
 
@@ -325,7 +325,8 @@ class ReportSchedule(BaseReportModel):
             'created_by': self.created_by,
             'start_datetime': start_datetime,
             'end_datetime': end_datetime,
-            'emails': self.emails
+            'config': self.config,
+            'emails': self.emails,
         }
 
         report_instance = Report.objects.create(**data)
