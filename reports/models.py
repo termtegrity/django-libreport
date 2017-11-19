@@ -72,7 +72,7 @@ class Report(BaseReportModel):
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
     document = models.FileField(upload_to=report_upload_to, blank=True,
-                                null=True)
+                                null=True, max_length=1024)
 
     class Meta(object):
         verbose_name = "Report"
