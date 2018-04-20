@@ -32,7 +32,7 @@ else:
             'NAME': 'docker',
             'USER': 'docker',
             'PASSWORD': 'docker',
-            'HOST': 'docker',
+            'HOST': 'localhost',
             'PORT': '',
         }
     }
@@ -74,10 +74,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django_celery_beat',
     'reports',
+    'reports.runtests.example',
 )
 
 AUTH_USER_MODEL = 'auth.User'
 
 CELERY_ALWAYS_EAGER = True
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-ORGANIZATION_MODEL = 'auth.User'  # Stupud hack to allow tests to run
+ORGANIZATION_MODEL = 'example.Organization'
