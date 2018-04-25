@@ -52,6 +52,7 @@ class BaseReportModel(models.Model):
 
     REPORT_CHOICES = [(r.id, r.name) for r in REPORTS.values()]
 
+    name = models.CharField(max_length=64, blank=True)
     report = models.CharField(max_length=64, choices=REPORT_CHOICES)
     typ = models.CharField(max_length=32, choices=TYPE_CHOICES)
     organization = models.ForeignKey(ORG_MODEL)
@@ -68,7 +69,6 @@ class BaseReportModel(models.Model):
 
 
 class Report(BaseReportModel):
-    name = models.CharField(max_length=64, blank=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
     document = models.FileField(upload_to=report_upload_to, blank=True,
@@ -155,6 +155,8 @@ class ReportSchedule(BaseReportModel):
                               default=PERIOD_WEEKLY)
 
     def __unicode__(self):
+        if self.name:
+            return '{} ({})'.format(self.name, self.organization.name)
         return '{}-{} ({})'.format(self.report, self.pk, self.organization.name)
 
     @classmethod
@@ -325,6 +327,8 @@ class ReportSchedule(BaseReportModel):
             'config': self.config,
             'emails': self.emails,
         }
+        if self.name:
+            data['name'] = self.name
 
         report = Report.objects.create(**data)
         report.schedule_document_generation()
