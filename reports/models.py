@@ -200,9 +200,13 @@ class ReportSchedule(BaseReportModel):
             organization's timezone
         :return: start_datetime, end_datetime
         """
+        if self.report_datetime:
+            end_time = self.report_datetime.time()
+        else:
+            end_time = time(0, 0, 0)
 
         today = datetime.combine(datetime.today().date(),
-                                 self.report_datetime.time())
+                                 end_time)
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
