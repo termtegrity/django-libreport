@@ -153,6 +153,7 @@ class ReportSchedule(BaseReportModel):
     schedule = JSONField(blank=True, default={})
     period = models.CharField(max_length=32, choices=PERIOD_CHOICES,
                               default=PERIOD_WEEKLY)
+    report_datetime = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
         if self.name:
@@ -200,56 +201,33 @@ class ReportSchedule(BaseReportModel):
         :return: start_datetime, end_datetime
         """
 
-        today = datetime.combine(datetime.today().date(), time(0, 0, 0))
+        today = datetime.combine(datetime.today().date(),
+                                 self.report_datetime.time())
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
             start_datetime = today - timedelta(days=1)
-            end_datetime = datetime.combine(start_datetime.date(),
-                                            time(23, 59, 59))
 
         elif self.period == self.PERIOD_WEEKLY:
             # Last week starting from monday
-            start_datetime = today - timedelta(days=7 + today.weekday())
-            end_datetime = datetime.combine(
-                (start_datetime + timedelta(days=6)).date(),
-                time(23, 59, 59))
+            start_datetime = today - timedelta(days=7)
+
         elif self.period == self.PERIOD_MONTHLY:
             # Last Months start and end date
-            current_month_start = today.replace(day=1)
-            start_datetime = current_month_start - relativedelta(months=1)
-            end_datetime = datetime.combine(
-                (current_month_start - timedelta(days=1)).date(),
-                time(23, 59, 59)
-            )
+            start_datetime = today - relativedelta(months=1)
 
         elif self.period == self.PERIOD_QUARTERLY:
-            # Last quarter's start and end date
-            year = today.year
-            last_quarter = (today.month - 1) / 3
-            if last_quarter == 0:
-                # in this case it should be last year's Q4
-                last_quarter = 4
-                year -= 1
-
             # Getting start and end date of the last quarter
-            start_date = datetime(year, 3 * last_quarter - 2, 1)
-            end_date = datetime(year, 3 * last_quarter, 1) + \
-                relativedelta(months=1) - timedelta(days=1)
-
-            start_datetime = datetime.combine(start_date.date(), time(0, 0, 0))
-            end_datetime = datetime.combine(end_date.date(), time(23, 59, 59))
+            start_datetime = today - relativedelta(months=3)
 
         elif self.period == self.PERIOD_YEARLY:
             # Last year's start and end date
-            last_year = today.year - 1
-            start_datetime = datetime(last_year, 1, 1, 0, 0, 0)
-            end_datetime = datetime(last_year, 12, 31, 23, 59, 59)
+            start_datetime = today - relativedelta(years=1)
         else:
             return None, None
 
         start_datetime = self.organization.timezone.localize(start_datetime)
-        end_datetime = self.organization.timezone.localize(end_datetime)
+        end_datetime = self.organization.timezone.localize(today)
 
         return start_datetime, end_datetime
 
@@ -258,54 +236,63 @@ class ReportSchedule(BaseReportModel):
         Constructs crontab format schedule based on a period and stores
             it on schedule field
         """
+        if self.report_datetime:
+            minute = str(self.report_datetime.minute)
+            hour = str(self.report_datetime.hour)
+            # Celery cron is Sunday=0, Saturday=6
+            # isoweekday() is Sunday=1, Saturday=7
+            day_of_week = str(self.report_datetime.isoweekday() - 1)
+            day_of_month = str(self.report_datetime.day)
+            month_of_year = str(self.report_datetime.month)
+        else:
+            minute = '0'
+            hour = '6'
+            day_of_week = '1'
+            day_of_month = '1'
+            month_of_year = '1'
 
         self.schedule = {
-            'minute': '0'
+            'minute': minute,
+            'hour': hour
         }
         if self.period == self.PERIOD_DAILY:
             # Runs every day at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
                 'day_of_month': '*',
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_WEEKLY:
             # Runs every Monday at 6am
             self.schedule.update({
-                'hour': '6',
-                'day_of_week': '1',
+                'day_of_week': day_of_week,
                 'day_of_month': '*',
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_MONTHLY:
             # Runs every 1st day of a Month at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
-                'day_of_month': '1',
+                'day_of_month': day_of_month,
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_QUARTERLY:
             # Runs every 1st day of a quarter at 6am
-            self.schedule.update({
-                'hour': '6',
-                'day_of_week': '*',
-                'day_of_month': '1',
-                'month_of_year': '*/3'
+            month_of_year = month_of_year % 3
+            if not month_of_year:
+                month_of_year = '*'
 
+            self.schedule.update({
+                'day_of_week': '*',
+                'day_of_month': day_of_month,
+                'month_of_year': '{}/3'.format(month_of_year)
             })
         elif self.period == self.PERIOD_YEARLY:
             # Runs every 1st day of a year at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
-                'day_of_month': '1',
-                'month_of_year': '1'
-
+                'day_of_month': day_of_month,
+                'month_of_year': month_of_year
             })
 
         self.save()
