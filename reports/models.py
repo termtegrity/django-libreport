@@ -155,7 +155,8 @@ class ReportSchedule(BaseReportModel):
                               default=PERIOD_WEEKLY)
 
     def __unicode__(self):
-        return '{}-{} ({})'.format(self.report, self.pk, self.organization.name)
+        return '{}-{} ({})'.format(
+            self.report, self.pk, self.organization.name)
 
     @classmethod
     def available_periods(cls):

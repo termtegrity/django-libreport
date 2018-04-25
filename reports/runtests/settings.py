@@ -1,6 +1,8 @@
 # Django settings for django-libreports project.
 import os
 
+REPORT_PACKAGES = ['reports.runtests.example.my_reports']
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 DEBUG_PROPAGATE_EXCEPTIONS = True
@@ -38,18 +40,18 @@ else:
     }
 
 TIME_ZONE = 'Europe/London'
-LANGUAGE_CODE = 'en-uk'
+LANGUAGE_CODE = 'en-GB'
 
 SITE_ID = 1
 
 USE_I18N = True
 USE_L10N = True
 
-MEDIA_ROOT = ''
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = ''
+STATIC_ROOT = 'static'
 
 SECRET_KEY = 'u@x-aj9(hoh#rb-^ymf#g2jx_hp0vj7u5#b@ag1n^seu9e!%cy'
 
