@@ -52,6 +52,7 @@ class BaseReportModel(models.Model):
 
     REPORT_CHOICES = [(r.id, r.name) for r in REPORTS.values()]
 
+    name = models.CharField(max_length=64, blank=True)
     report = models.CharField(max_length=64, choices=REPORT_CHOICES)
     typ = models.CharField(max_length=32, choices=TYPE_CHOICES)
     organization = models.ForeignKey(ORG_MODEL)
@@ -68,7 +69,6 @@ class BaseReportModel(models.Model):
 
 
 class Report(BaseReportModel):
-    name = models.CharField(max_length=64, blank=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
     document = models.FileField(upload_to=report_upload_to, blank=True,
@@ -153,10 +153,13 @@ class ReportSchedule(BaseReportModel):
     schedule = JSONField(blank=True, default={})
     period = models.CharField(max_length=32, choices=PERIOD_CHOICES,
                               default=PERIOD_WEEKLY)
+    report_datetime = models.DateTimeField(null=True, blank=True)
 
     def __unicode__(self):
-        return '{}-{} ({})'.format(
-            self.report, self.pk, self.organization.name)
+        if self.name:
+            return '{} ({})'.format(self.name, self.organization.name)
+        return '{}-{} ({})'.format(self.report, self.pk,
+                                   self.organization.name)
 
     @classmethod
     def available_periods(cls):
@@ -194,10 +197,37 @@ class ReportSchedule(BaseReportModel):
     def datetimes_by_period(self):
         """
         Constructs start_datetime and end_datetime based on a self.period
-        Localizes start_datetime and end_datetime based on
-            organization's timezone
         :return: start_datetime, end_datetime
         """
+        if self.report_datetime:
+            end_time = self.report_datetime.time()
+            end_datetime = datetime.combine(timezone.now().date(), end_time)
+
+            if self.period == self.PERIOD_DAILY:
+                # Yesterday
+                start_datetime = end_datetime - timedelta(days=1)
+
+            elif self.period == self.PERIOD_WEEKLY:
+                # Last week starting from monday
+                start_datetime = end_datetime - timedelta(days=7)
+
+            elif self.period == self.PERIOD_MONTHLY:
+                # Last Months start and end date
+                start_datetime = end_datetime - relativedelta(months=1)
+
+            elif self.period == self.PERIOD_QUARTERLY:
+                # Getting start and end date of the last quarter
+                start_datetime = end_datetime - relativedelta(months=3)
+
+            elif self.period == self.PERIOD_YEARLY:
+                # Last year's start and end date
+                start_datetime = end_datetime - relativedelta(years=1)
+            else:
+                return None, None
+
+            start_datetime = start_datetime + timedelta(seconds=1)
+
+            return start_datetime, end_datetime
 
         today = datetime.combine(timezone.now().date(), time(0, 0, 0))
 
@@ -254,54 +284,63 @@ class ReportSchedule(BaseReportModel):
         Constructs crontab format schedule based on a period and stores
             it on schedule field
         """
+        if self.report_datetime:
+            minute = str(self.report_datetime.minute)
+            hour = str(self.report_datetime.hour)
+            # Celery cron is Sunday=0, Saturday=6
+            # isoweekday() is Sunday=1, Saturday=7
+            day_of_week = str(self.report_datetime.isoweekday() - 1)
+            day_of_month = str(self.report_datetime.day)
+            month_of_year = str(self.report_datetime.month)
+        else:
+            minute = '0'
+            hour = '6'
+            day_of_week = '1'
+            day_of_month = '1'
+            month_of_year = '1'
 
         self.schedule = {
-            'minute': '0'
+            'minute': minute,
+            'hour': hour
         }
         if self.period == self.PERIOD_DAILY:
             # Runs every day at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
                 'day_of_month': '*',
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_WEEKLY:
             # Runs every Monday at 6am
             self.schedule.update({
-                'hour': '6',
-                'day_of_week': '1',
+                'day_of_week': day_of_week,
                 'day_of_month': '*',
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_MONTHLY:
             # Runs every 1st day of a Month at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
-                'day_of_month': '1',
+                'day_of_month': day_of_month,
                 'month_of_year': '*'
-
             })
         elif self.period == self.PERIOD_QUARTERLY:
             # Runs every 1st day of a quarter at 6am
-            self.schedule.update({
-                'hour': '6',
-                'day_of_week': '*',
-                'day_of_month': '1',
-                'month_of_year': '*/3'
+            month_of_year = month_of_year % 3
+            if not month_of_year:
+                month_of_year = '*'
 
+            self.schedule.update({
+                'day_of_week': '*',
+                'day_of_month': day_of_month,
+                'month_of_year': '{}/3'.format(month_of_year)
             })
         elif self.period == self.PERIOD_YEARLY:
             # Runs every 1st day of a year at 6am
             self.schedule.update({
-                'hour': '6',
                 'day_of_week': '*',
-                'day_of_month': '1',
-                'month_of_year': '1'
-
+                'day_of_month': day_of_month,
+                'month_of_year': month_of_year
             })
 
         self.save()
@@ -323,6 +362,8 @@ class ReportSchedule(BaseReportModel):
             'config': self.config,
             'emails': self.emails,
         }
+        if self.name:
+            data['name'] = self.name
 
         report = Report.objects.create(**data)
         report.schedule_document_generation()
