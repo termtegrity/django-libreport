@@ -1,0 +1,26 @@
+version: "2"
+services:
+
+  postgres:
+    image: simonluijk/docker-postgres-dev:9.4
+    ports:
+      - 5432:5432
+    volumes:
+      - ./tmp/postgres:/var/lib/postgresql/9.4
+    logging:
+      driver: json-file
+      options:
+        max-size: 10k
+        max-file: "2"
+    networks:
+      - reports
+
+
+networks:
+  reports:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.142.0/24
+          gateway: 172.16.142.1

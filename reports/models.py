@@ -158,7 +158,8 @@ class ReportSchedule(BaseReportModel):
     def __unicode__(self):
         if self.name:
             return '{} ({})'.format(self.name, self.organization.name)
-        return '{}-{} ({})'.format(self.report, self.pk, self.organization.name)
+        return '{}-{} ({})'.format(self.report, self.pk,
+                                   self.organization.name)
 
     @classmethod
     def available_periods(cls):
@@ -205,8 +206,7 @@ class ReportSchedule(BaseReportModel):
         else:
             end_time = time(0, 0, 0)
 
-        today = datetime.combine(datetime.today().date(),
-                                 end_time)
+        today = datetime.combine(datetime.now().date(), end_time)
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
@@ -229,9 +229,6 @@ class ReportSchedule(BaseReportModel):
             start_datetime = today - relativedelta(years=1)
         else:
             return None, None
-
-        start_datetime = self.organization.timezone.localize(start_datetime)
-        end_datetime = self.organization.timezone.localize(today)
 
         return start_datetime, end_datetime
 
