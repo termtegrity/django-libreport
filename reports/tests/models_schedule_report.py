@@ -11,7 +11,7 @@ class ScheduleReportModelTestCase(TestCase):
     @patch('django.utils.timezone.now')
     def test_datetimes_by_period(self, mNow):
 
-        mNow.return_value = datetime(2012, 12, 12, 0, 0, 0)
+        mNow.return_value = datetime(2012, 12, 12, 12, 12, 12)
         org = Organization(name='Org')
 
         # Daily
