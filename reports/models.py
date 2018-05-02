@@ -199,7 +199,7 @@ class ReportSchedule(BaseReportModel):
         :return: start_datetime, end_datetime
         """
 
-        today = datetime.combine(datetime.today().date(), time(0, 0, 0))
+        today = datetime.combine(timezone.now().date(), time(0, 0, 0))
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
@@ -246,9 +246,6 @@ class ReportSchedule(BaseReportModel):
             end_datetime = datetime(last_year, 12, 31, 23, 59, 59)
         else:
             return None, None
-
-        start_datetime = self.organization.timezone.localize(start_datetime)
-        end_datetime = self.organization.timezone.localize(end_datetime)
 
         return start_datetime, end_datetime
 
