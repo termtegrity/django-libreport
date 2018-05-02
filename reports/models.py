@@ -201,10 +201,35 @@ class ReportSchedule(BaseReportModel):
         """
         if self.report_datetime:
             end_time = self.report_datetime.time()
-        else:
-            end_time = time(0, 0, 0)
+            end_datetime = datetime.combine(timezone.now().date(), end_time)
 
-        today = datetime.combine(timezone.now().date(), end_time)
+            if self.period == self.PERIOD_DAILY:
+                # Yesterday
+                start_datetime = end_datetime - timedelta(days=1)
+
+            elif self.period == self.PERIOD_WEEKLY:
+                # Last week starting from monday
+                start_datetime = end_datetime - timedelta(days=7)
+
+            elif self.period == self.PERIOD_MONTHLY:
+                # Last Months start and end date
+                start_datetime = end_datetime - relativedelta(months=1)
+
+            elif self.period == self.PERIOD_QUARTERLY:
+                # Getting start and end date of the last quarter
+                start_datetime = end_datetime - relativedelta(months=3)
+
+            elif self.period == self.PERIOD_YEARLY:
+                # Last year's start and end date
+                start_datetime = end_datetime - relativedelta(years=1)
+            else:
+                return None, None
+
+            start_datetime = start_datetime + timedelta(seconds=1)
+
+            return start_datetime, end_datetime
+
+        today = datetime.combine(timezone.now().date(), time(0, 0, 0))
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
