@@ -79,3 +79,111 @@ class ScheduleReportModelTestCase(TestCase):
         start, end = yearly.datetimes_by_period()
         self.assertEquals(start, datetime(2011, 12, 12, 10, 10, 11))
         self.assertEquals(end, datetime(2012, 12, 12, 10, 10, 10))
+
+    def test_set_schedule(self):
+
+        org = Organization.objects.create(name='Org')
+
+        # Daily
+        daily = ReportSchedule(organization=org)
+        daily.period = ReportSchedule.PERIOD_DAILY
+        daily.set_schedule()
+        self.assertEquals(daily.schedule, {
+            'day_of_month': '*',
+            'day_of_week': '*',
+            'hour': '6',
+            'minute': '0',
+            'month_of_year': '*'
+        })
+
+        # Weekly
+        weekly = ReportSchedule(organization=org)
+        weekly.period = ReportSchedule.PERIOD_WEEKLY
+        weekly.set_schedule()
+        self.assertEquals(weekly.schedule, {
+            'day_of_month': '*',
+            'day_of_week': '1',
+            'hour': '6',
+            'minute': '0',
+            'month_of_year': '*'
+        })
+
+        # Monthly
+        monthly = ReportSchedule(organization=org)
+        monthly.period = ReportSchedule.PERIOD_MONTHLY
+        monthly.set_schedule()
+        self.assertEquals(monthly.schedule, {
+            'day_of_month': '1',
+            'day_of_week': '*',
+            'hour': '6',
+            'minute': '0',
+            'month_of_year': '*'
+        })
+
+        # Yearly
+        yearly = ReportSchedule(organization=org)
+        yearly.period = ReportSchedule.PERIOD_YEARLY
+        yearly.set_schedule()
+        self.assertEquals(yearly.schedule, {
+            'day_of_month': '1',
+            'day_of_week': '*',
+            'hour': '6',
+            'minute': '0',
+            'month_of_year': '1'
+        })
+
+    def test_set_schedule_choosen_date(self):
+
+        org = Organization.objects.create(name='Org')
+
+        # Daily
+        daily = ReportSchedule(organization=org)
+        daily.period = ReportSchedule.PERIOD_DAILY
+        daily.report_datetime = datetime(2010, 10, 10, 10, 10, 10)
+        daily.set_schedule()
+        self.assertEquals(daily.schedule, {
+            'day_of_month': '*',
+            'day_of_week': '*',
+            'hour': '10',
+            'minute': '10',
+            'month_of_year': '*'
+        })
+
+        # Weekly
+        weekly = ReportSchedule(organization=org)
+        weekly.period = ReportSchedule.PERIOD_WEEKLY
+        weekly.report_datetime = datetime(2010, 10, 10, 10, 10, 10)
+        weekly.set_schedule()
+        self.assertEquals(weekly.schedule, {
+            'day_of_month': '*',
+            'day_of_week': '6',
+            'hour': '10',
+            'minute': '10',
+            'month_of_year': '*'
+        })
+
+        # Monthly
+        monthly = ReportSchedule(organization=org)
+        monthly.period = ReportSchedule.PERIOD_MONTHLY
+        monthly.report_datetime = datetime(2010, 10, 10, 10, 10, 10)
+        monthly.set_schedule()
+        self.assertEquals(monthly.schedule, {
+            'day_of_month': '10',
+            'day_of_week': '*',
+            'hour': '10',
+            'minute': '10',
+            'month_of_year': '*'
+        })
+
+        # Yearly
+        yearly = ReportSchedule(organization=org)
+        yearly.period = ReportSchedule.PERIOD_YEARLY
+        yearly.report_datetime = datetime(2010, 10, 10, 10, 10, 10)
+        yearly.set_schedule()
+        self.assertEquals(yearly.schedule, {
+            'day_of_month': '10',
+            'day_of_week': '*',
+            'hour': '10',
+            'minute': '10',
+            'month_of_year': '10'
+        })
