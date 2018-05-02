@@ -197,8 +197,6 @@ class ReportSchedule(BaseReportModel):
     def datetimes_by_period(self):
         """
         Constructs start_datetime and end_datetime based on a self.period
-        Localizes start_datetime and end_datetime based on
-            organization's timezone
         :return: start_datetime, end_datetime
         """
         if self.report_datetime:
@@ -206,27 +204,51 @@ class ReportSchedule(BaseReportModel):
         else:
             end_time = time(0, 0, 0)
 
-        today = datetime.combine(datetime.now().date(), end_time)
+        today = datetime.combine(timezone.now().date(), end_time)
 
         if self.period == self.PERIOD_DAILY:
             # Yesterday
             start_datetime = today - timedelta(days=1)
+            end_datetime = datetime.combine(start_datetime.date(),
+                                            time(23, 59, 59))
 
         elif self.period == self.PERIOD_WEEKLY:
             # Last week starting from monday
-            start_datetime = today - timedelta(days=7)
-
+            start_datetime = today - timedelta(days=7 + today.weekday())
+            end_datetime = datetime.combine(
+                (start_datetime + timedelta(days=6)).date(),
+                time(23, 59, 59))
         elif self.period == self.PERIOD_MONTHLY:
             # Last Months start and end date
-            start_datetime = today - relativedelta(months=1)
+            current_month_start = today.replace(day=1)
+            start_datetime = current_month_start - relativedelta(months=1)
+            end_datetime = datetime.combine(
+                (current_month_start - timedelta(days=1)).date(),
+                time(23, 59, 59)
+            )
 
         elif self.period == self.PERIOD_QUARTERLY:
+            # Last quarter's start and end date
+            year = today.year
+            last_quarter = (today.month - 1) / 3
+            if last_quarter == 0:
+                # in this case it should be last year's Q4
+                last_quarter = 4
+                year -= 1
+
             # Getting start and end date of the last quarter
-            start_datetime = today - relativedelta(months=3)
+            start_date = datetime(year, 3 * last_quarter - 2, 1)
+            end_date = datetime(year, 3 * last_quarter, 1) + \
+                relativedelta(months=1) - timedelta(days=1)
+
+            start_datetime = datetime.combine(start_date.date(), time(0, 0, 0))
+            end_datetime = datetime.combine(end_date.date(), time(23, 59, 59))
 
         elif self.period == self.PERIOD_YEARLY:
             # Last year's start and end date
-            start_datetime = today - relativedelta(years=1)
+            last_year = today.year - 1
+            start_datetime = datetime(last_year, 1, 1, 0, 0, 0)
+            end_datetime = datetime(last_year, 12, 31, 23, 59, 59)
         else:
             return None, None
 
