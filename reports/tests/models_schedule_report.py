@@ -1,3 +1,5 @@
+import json
+from django_celery_beat.models import PeriodicTask
 from mock import patch
 from datetime import datetime
 from django.test import TestCase
@@ -187,3 +189,15 @@ class ScheduleReportModelTestCase(TestCase):
             'minute': '10',
             'month_of_year': '10'
         })
+
+    def test_periodic_task_kwargs(self):
+        org = Organization.objects.create(name='Org')
+
+        schedule = ReportSchedule(organization=org)
+        schedule.period = ReportSchedule.PERIOD_DAILY
+        schedule.set_schedule()
+        schedule.set_periodic_task()
+
+        task = schedule.periodic_task
+        # Make sure django-celery-beat can properly load kwargs
+        json.loads(task.kwargs)
