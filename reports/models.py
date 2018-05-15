@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 from importlib import import_module
 from pkgutil import walk_packages
 
+import json
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -179,16 +180,14 @@ class ReportSchedule(BaseReportModel):
             self.periodic_task.delete()
 
         schedule, __ = CrontabSchedule.objects.get_or_create(**self.schedule)
-
+        kwargs = json.dumps({'report_schedule_id': self.pk})
         task = 'reports.tasks.schedule_task'
         data = {
             'name': '{}_{}'.format(task, self.pk),
             'task': task,
             'enabled': True,
             'crontab': schedule,
-            'kwargs': {
-                'report_schedule_id': self.pk
-            }
+            'kwargs': kwargs
         }
 
         self.periodic_task, __ = PeriodicTask.objects.get_or_create(**data)
