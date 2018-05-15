@@ -161,6 +161,11 @@ class ReportSchedule(BaseReportModel):
         return '{}-{} ({})'.format(self.report, self.pk,
                                    self.organization.name)
 
+    def delete(self, *args, **kwargs):
+        # Clean up after ourselves when deleting a report
+        self.periodic_task.delete()
+        super(ReportSchedule, self).delete(*args, **kwargs)
+
     @classmethod
     def available_periods(cls):
         """
