@@ -130,6 +130,7 @@ class Report(BaseReportModel):
             'created_by': self.created_by,
             'created_at': self.created_at,
             'organization': self.organization,
+            'config': self.config,
         })
         instance = REPORTS[self.report]()
         return getattr(instance, method)(**kwargs)
