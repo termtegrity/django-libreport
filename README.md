@@ -13,9 +13,12 @@ Django app to allow creating custom reports easily..
 * Python (2.7, 3.6)
 * Django (1.8)
 * python-dateutil
+* pathlib (for Python < 3.4)
+* django-hardcopy
 * django-celery-beat
 * jsonfield
 * pypandoc
+* Chrome or Chromium web browser
 
 # Installation
 

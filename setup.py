@@ -65,6 +65,8 @@ setup(
     install_requires=[
         'django',
         'python-dateutil',
+        'pathlib;python_version<"3.4"',
+        'django-hardcopy',
         'django-celery-beat',
         'jsonfield',
         'pypandoc'
