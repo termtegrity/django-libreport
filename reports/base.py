@@ -2,6 +2,7 @@ import tempfile
 
 from pypandoc import convert_text
 from django.core.files.base import ContentFile
+from hardcopy import bytestring_to_pdf
 
 
 class BaseReport(object):
@@ -34,5 +35,21 @@ class BaseReport(object):
                 extra_args.append('--toc')
             convert_text(markdown, typ, 'markdown_phpextra',
                          outputfile=temp.name, extra_args=extra_args)
+            with open(temp.name, 'r') as document:
+                return ContentFile(document.read())
+
+    def html_to_pdf(self, html, delay=5000):
+        """
+        :param html: html document as a bytestring
+        :param delay: time to wait for javascript loading in ms
+        :return: path to a temporary file
+        """
+
+        with tempfile.NamedTemporaryFile(suffix='.pdf') as temp:
+            extra_args = {
+                'virtual-time-budget': delay
+            }
+
+            bytestring_to_pdf(html, temp, **extra_args)
             with open(temp.name, 'r') as document:
                 return ContentFile(document.read())
