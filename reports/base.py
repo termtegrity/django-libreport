@@ -1,8 +1,10 @@
+import base64
 import tempfile
 
+import pychrome
 from pypandoc import convert_text
+from django.conf import settings
 from django.core.files.base import ContentFile
-from hardcopy import bytestring_to_pdf
 
 
 class BaseReport(object):
@@ -38,18 +40,25 @@ class BaseReport(object):
             with open(temp.name, 'r') as document:
                 return ContentFile(document.read())
 
-    def html_to_pdf(self, html, delay=5000):
+    def html_to_pdf(self, html, delay=5):
         """
         :param html: html document as a bytestring
-        :param delay: time to wait for javascript loading in ms
+        :param delay: time to wait for javascript loading in seconds
         :return: path to a temporary file
         """
 
-        with tempfile.NamedTemporaryFile(suffix='.pdf') as temp:
-            extra_args = {
-                'virtual-time-budget': delay
-            }
+        browser = pychrome.Browser(url=settings.CHROME_URL)
+        encoded_html = base64.b64encode(html)
 
-            bytestring_to_pdf(html, temp, **extra_args)
-            with open(temp.name, 'r') as document:
-                return ContentFile(document.read())
+        data_url = "data:text/html;base64,{}".format(encoded_html)
+        tab = browser.new_tab(data_url)
+        tab.start()
+
+        tab.wait(delay)
+        try:
+            data = tab.Page.printToPDF()
+            data = base64.b64decode(data['data'])
+            return ContentFile(data)
+        finally:
+            tab.stop()
+            browser.close_tab(tab)

@@ -30,6 +30,7 @@ Install using `pip`...
 
 Example settings:
 
+    CHROME_URL = 'http://localhost:9222'
     ORGANIZATION_MODEL = 'myapp.Organization'
     REPORT_PACKAGES = ('myapp.reports', )  # Packages were reports can be found
     INSTALLED_APPS = (
@@ -37,6 +38,14 @@ Example settings:
         'django_celery_beat',
         'reports',
     )
+
+For generating PDF reports you must have a Chrome/Chromium browser instance running:
+
+    google-chrome --remote-debugging-port=9222
+
+or headless mode:
+
+    google-chrome --headless --disable-gpu --remote-debugging-port=9222
 
 You will then have to create an API to manage these. More docs to come...
 
