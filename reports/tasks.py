@@ -14,7 +14,10 @@ def generate_document(self, report_id):
     Generates the report document. Retry after 1 minute
     """
 
-    report = Report.objects.get(pk=report_id)
+    try:
+        report = Report.objects.get(pk=report_id)
+    except Report.DoesNotExist as exc:
+        raise self.retry(exc=exc, max_retries=3)
     try:
         report.generate_document()
     except Exception as exc:
