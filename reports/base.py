@@ -1,11 +1,25 @@
 import base64
-import tempfile
-
 import pychrome
-from pypandoc import convert_text
+import sys
+import tempfile
 from django.conf import settings
 from django.core.files.base import ContentFile
+from pypandoc import convert_text
+from socket import gethostbyname
 
+# Syntax sugar.
+_ver = sys.version_info
+
+#: Python 2.x?
+is_py2 = (_ver[0] == 2)
+
+#: Python 3.x?
+is_py3 = (_ver[0] == 3)
+
+if is_py2:
+    from urlparse import urlparse
+elif is_py3:
+    from urllib.parse import urlparse
 
 class BaseReport(object):
     id = ''
@@ -46,8 +60,12 @@ class BaseReport(object):
         :param delay: time to wait for javascript loading in seconds
         :return: path to a temporary file
         """
+        split = urlparse(settings.CHROME_URL)
+        ipaddr = gethostbyname(split.hostname)
+        # related to https://github.com/GoogleChrome/puppeteer/issues/2242
+        url = settings.URL.replace(split.hostname, ipaddr)
 
-        browser = pychrome.Browser(url=settings.CHROME_URL)
+        browser = pychrome.Browser(url=url)
         encoded_html = base64.b64encode(html)
 
         data_url = "data:text/html;base64,{}".format(encoded_html)
