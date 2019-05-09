@@ -21,6 +21,7 @@ if is_py2:
 elif is_py3:
     from urllib.parse import urlparse
 
+
 class BaseReport(object):
     id = ''
     name = ''
@@ -63,7 +64,7 @@ class BaseReport(object):
         split = urlparse(settings.CHROME_URL)
         ipaddr = gethostbyname(split.hostname)
         # related to https://github.com/GoogleChrome/puppeteer/issues/2242
-        url = settings.URL.replace(split.hostname, ipaddr)
+        url = settings.CHROME_URL.replace(split.hostname, ipaddr)
 
         browser = pychrome.Browser(url=url)
         encoded_html = base64.b64encode(html)
