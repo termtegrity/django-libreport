@@ -48,7 +48,7 @@ class BaseReport(object):
             extra_args = ['--dpi=180']
             if typ == 'docx':
                 if reference:
-                    extra_args.append('--reference-docx={}'.format(reference))
+                    extra_args.append('--reference-doc={}'.format(reference))
                 extra_args.append('--toc')
             convert_text(markdown, typ, 'markdown_phpextra',
                          outputfile=temp.name, extra_args=extra_args)
