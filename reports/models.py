@@ -125,6 +125,8 @@ class Report(BaseReportModel):
 
     def _run_instance_method(self, method):
         kwargs = deepcopy(self.config)
+        if not isinstance(kwargs, dict):
+            kwargs = json.loads(kwargs)
         kwargs.update({
             'typ': self.typ,
             'start_datetime': self.start_datetime,
