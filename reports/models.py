@@ -81,6 +81,9 @@ class Report(BaseReportModel):
         verbose_name = "Report"
         verbose_name_plural = "Reports"
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return u'{0} ({1})'.format(self.name, self.get_report_display())
 
