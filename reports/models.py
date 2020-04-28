@@ -169,8 +169,10 @@ class ReportSchedule(BaseReportModel):
     def __unicode__(self):
         if self.name:
             return '{} ({})'.format(self.name, self.organization.name)
-        return '{}-{} ({})'.format(self.report, self.pk,
-                                   self.organization.name)
+        return '{}-{} ({})'.format(self.report, self.pk, self.organization.name)
+
+    def __str__(self):
+        return self.__unicode__()
 
     def delete(self, *args, **kwargs):
         # Clean up after ourselves when deleting a report
