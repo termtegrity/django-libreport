@@ -74,7 +74,8 @@ class BaseReportModel(models.Model):
 
 class ReportManager(models.Manager):
     def failed(self):
-        return self.model.filter(Q(document='') | Q(document=None))
+        qs = self.get_queryset()
+        return qs.filter(Q(document='') | Q(document=None))
 
 
 class Report(BaseReportModel):
